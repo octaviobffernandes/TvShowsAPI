@@ -43,6 +43,10 @@ namespace TvShowsAPI.WebApi.Context
                 .Skip(skip)
                 .Limit(pageSize)
                 .ToListAsync();
+
+            foreach(var show in results)
+                show.Cast = show.Cast.OrderByDescending(c => c.Birthday);
+
             return results.OrderBy(r => r.Id);
         }
 

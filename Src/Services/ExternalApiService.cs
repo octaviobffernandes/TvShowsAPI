@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -45,25 +46,43 @@ namespace TvShowsAPI.WebApi.Services
 
         public async Task<IEnumerable<Show>> GetShowsAsync(int pageNumber)
         {
-            var resource = string.Format(_config.ShowEndpoint, pageNumber);
-            _logger.LogDebug($"Sending request to {_client.BaseAddress}/{resource}");
-            var response = await _client.GetAsync(resource);
-            response.EnsureSuccessStatusCode(); //throw ex if statuscode != 200
+            try
+            {
+                var resource = string.Format(_config.ShowEndpoint, pageNumber);
+                _logger.LogDebug($"Sending request to {_client.BaseAddress}/{resource}");
+                var response = await _client.GetAsync(resource);
+                response.EnsureSuccessStatusCode(); //throw ex if statuscode != 200
 
-            return await response.Content.ReadAsAsync<IEnumerable<Show>>();
+                return await response.Content.ReadAsAsync<IEnumerable<Show>>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error has occurred while getting shows page {pageNumber}");
+                return new List<Show>();
+            }
         }
 
         public async Task<IEnumerable<CastMember>> GetCastForShowAsync(int showId)
         {
-            var resource = string.Format(_config.CastEndpoint, showId);
-            _logger.LogDebug($"Sending request to {_client.BaseAddress}/{resource}");
+            try
+            {
+                var resource = string.Format(_config.CastEndpoint, showId);
+                _logger.LogDebug($"Sending request to {_client.BaseAddress}/{resource}");
 
-            var response = await _client.GetAsync(resource);
-            response.EnsureSuccessStatusCode(); //throw ex if statuscode != 200
+                var response = await _client.GetAsync(resource);
+                response.EnsureSuccessStatusCode(); //throw ex if statuscode != 200
 
-            var json = await response.Content.ReadAsAsync<JArray>();
-            //Consider only the person element of the response, ignoring character info
-            return json.Values<JObject>("person").Select(p => p.ToObject<CastMember>()).ToList();
+                var json = await response.Content.ReadAsAsync<JArray>();
+                //Consider only the person element of the response, ignoring character info
+                return json.Values<JObject>("person")
+                    .Select(p => p.ToObject<CastMember>())
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error has occurred while getting cast for show {showId}");
+                return new List<CastMember>();
+            }
         }
     }
 }

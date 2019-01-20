@@ -34,7 +34,7 @@ namespace TvShowsAPI.WebApi.Services
         public async Task DoImportAsync()
         {
             var mustContinue = true;
-            var pageNumber = 0;
+            var pageNumber = 42;
 
             do
             {
